@@ -90,7 +90,7 @@ class ROBINMatching {
   bool swapped_ = false;
 
   template <typename T>
-  void buildKDTree(const std::vector<T>& data, KDTree* tree);
+  void buildKDTree(const std::vector<T>& data, KDTree* tree, std::vector<float>& dataset_out);
 
   template <typename T>
   void searchKDTree(const KDTree& tree,

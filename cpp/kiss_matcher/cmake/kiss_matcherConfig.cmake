@@ -8,6 +8,7 @@ find_dependency(OpenMP REQUIRED)
 # first and falls back to manual discovery on distros without a flann CMake
 # config (e.g. Ubuntu 22.04 libflann-dev).
 find_dependency(flann REQUIRED)
+find_dependency(robin REQUIRED)
 
 # The parameter must adhere to the format: ${PROJECT_NAME}Targets.cmake
 include("${MYPROJECT_CMAKE_DIR}/kiss_matcherTargets.cmake")

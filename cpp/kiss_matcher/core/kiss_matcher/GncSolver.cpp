@@ -287,8 +287,8 @@ void QuatroSolver::solveForRotation(const Eigen::Matrix<double, 3, Eigen::Dynami
   double prev_cost = std::numeric_limits<double>::infinity();
   cost_            = std::numeric_limits<double>::infinity();
   //  double noise_bound_sq = std::pow(params_.noise_bound, 2);
-  static double rot_noise_bound = params_.noise_bound;
-  static double noise_bound_sq  = std::pow(rot_noise_bound, 2);
+  double rot_noise_bound = params_.noise_bound;
+  double noise_bound_sq  = std::pow(rot_noise_bound, 2);
   if (noise_bound_sq < 1e-16) {
     noise_bound_sq = 1e-2;
   }

@@ -186,7 +186,9 @@ void FasterPFH::ComputeFeature(std::vector<Eigen::Vector3f> &points,
 
   // Important!
   // Without this function, the final descriptors have NaN values
+  std::sort(spfh_indices_.begin(), spfh_indices_.end());
   FilterIndicesCausingNaN(spfh_indices_);
+  std::sort(spfh_indices_.begin(), spfh_indices_.end());
   // auto t_e_n = std::chrono::high_resolution_clock::now();
 
   // Initialize the arrays that will store the SPFH signatures

@@ -55,11 +55,12 @@ std::vector<std::pair<int, int>> ROBINMatching::establishCorrespondences(
 }
 
 void ROBINMatching::match(const std::string& robin_mode, float tuple_scale, bool use_ratio_test) {
+  std::vector<float> dataset_i, dataset_j;
   KDTree feature_tree_i(flann::KDTreeSingleIndexParams(15));
-  buildKDTree(features_[fi_], &feature_tree_i);
+  buildKDTree(features_[fi_], &feature_tree_i, dataset_i);
 
   KDTree feature_tree_j(flann::KDTreeSingleIndexParams(15));
-  buildKDTree(features_[fj_], &feature_tree_j);
+  buildKDTree(features_[fj_], &feature_tree_j, dataset_j);
 
   // NOTE(hlim): `2` indicates that we save the two distances between the two closest descriptors.
   int num_candidates = use_ratio_test ? 2 : 1;
@@ -121,8 +122,7 @@ void ROBINMatching::match(const std::string& robin_mode, float tuple_scale, bool
     } else {
       // Fisher-Yates-like partial shuffle
       // NOTE(hlim) Due to the randomness, sometimes it fails
-      std::random_device rd;
-      std::mt19937 gen(rd());
+      std::mt19937 gen(42);  // fixed seed for reproducibility across runs
 
       for (size_t i = 0; i < num_max_corr_; ++i) {
         size_t j = i + gen() % (matched_pairs.size() - i);
@@ -182,8 +182,7 @@ void ROBINMatching::runTupleTest(const std::vector<std::pair<int, int>>& corres,
     std::vector<std::pair<int, int>> corres_tuple;
     corres_tuple.reserve(ncorr);
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    std::mt19937 gen(42);  // fixed seed for reproducibility across runs
     std::uniform_int_distribution<size_t> distribution(0, ncorr - 1);
 
     std::vector<bool> is_already_included(ncorr, false);
@@ -239,7 +238,7 @@ void ROBINMatching::runTupleTest(const std::vector<std::pair<int, int>>& corres,
       float lj1 = (ptj1 - ptj2).norm();
       float lj2 = (ptj2 - ptj0).norm();
 
-      static float thr = noise_bound_;
+      float thr = noise_bound_;
       if (li0 - thr > lj0 || lj0 > li0 + thr) {
         continue;
       }
@@ -365,14 +364,15 @@ std::vector<size_t> ROBINMatching::applyOutlierPruning(
 }
 
 template <typename T>
-void ROBINMatching::buildKDTree(const std::vector<T>& data, ROBINMatching::KDTree* tree) {
-  int rows, dim;
-  rows = static_cast<int>(data.size());
-  dim  = static_cast<int>(data[0].size());
-  std::vector<float> dataset(rows * dim);
-  flann::Matrix<float> dataset_mat(&dataset[0], rows, dim);
+void ROBINMatching::buildKDTree(const std::vector<T>& data,
+                                ROBINMatching::KDTree* tree,
+                                std::vector<float>& dataset_out) {
+  int rows = static_cast<int>(data.size());
+  int dim  = static_cast<int>(data[0].size());
+  dataset_out.resize(rows * dim);
   for (int i = 0; i < rows; i++)
-    for (int j = 0; j < dim; j++) dataset[i * dim + j] = data[i][j];
+    for (int j = 0; j < dim; j++) dataset_out[i * dim + j] = data[i][j];
+  flann::Matrix<float> dataset_mat(&dataset_out[0], rows, dim);
   KDTree temp_tree(dataset_mat, flann::KDTreeSingleIndexParams(15));
   temp_tree.buildIndex();
   *tree = temp_tree;
